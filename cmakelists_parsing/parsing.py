@@ -152,7 +152,8 @@ def parse_command(start_line_num, command_name, toks):
             line_nums = range(start_line_num, line_num + 1)
             return line_nums, cmd
         elif typ == 'left paren':
-            raise ValueError('Unexpected left paren at line %s' % line_num)
+            pass
+            # raise ValueError('Unexpected left paren at line %s' % line_num)
         elif typ in ('word', 'string'):
             cmd.body.append(Arg(tok_contents, []))
         elif typ == 'comment':
