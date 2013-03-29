@@ -1,4 +1,5 @@
 
+
 def merge_pairs(list, should_merge, merge):
     """
     Merges adjacent elements of list using the function merge

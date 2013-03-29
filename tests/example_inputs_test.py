@@ -4,6 +4,7 @@ import unittest
 
 import cmakelists_parsing.parsing as cmp
 
+
 def yield_examples():
     paths = glob.glob(os.path.join(os.path.dirname(__file__),
                                    '..', 'example_inputs', '*'))
@@ -11,6 +12,7 @@ def yield_examples():
         with open(path) as file:
             contents = file.read()
             yield path, contents
+
 
 class ExamplesTestCase(unittest.TestCase):
     def test_idempotency_of_parse_unparse(self):

@@ -5,6 +5,7 @@ import unittest
 from cmakelists_parsing.parsing import (
     File, Command, Comment, BlankLine, Arg, parse, prettify)
 
+
 class ParsingTestCase(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
@@ -40,12 +41,14 @@ ITKIO ITKBasicFilters ITKCommon
             Command('INCLUDE', [Arg('${ITK_USE_FILE}')]),
             BlankLine(),
             Command('ADD_EXECUTABLE', [Arg('CastImageFilter'), Arg('CastImageFilter.cxx')]),
-            Command('TARGET_LINK_LIBRARIES', [Arg('CastImageFilter', comments=['# inline comment 1']),
-                                              Arg('vtkHybrid', comments=['#inline comment 2']),
-                                              Arg('ITKIO'),
-                                              Arg('ITKBasicFilters'),
-                                              Arg('ITKCommon')]),
+            Command('TARGET_LINK_LIBRARIES', [
+                Arg('CastImageFilter', comments=['# inline comment 1']),
+                Arg('vtkHybrid', comments=['#inline comment 2']),
+                Arg('ITKIO'),
+                Arg('ITKBasicFilters'),
+                Arg('ITKCommon'),
             ])
+        ])
         msg = '\nexpected\n%s\ngot\n%s' % (expected, output)
         self.assertEqual(expected, output, msg)
 
@@ -77,7 +80,7 @@ INCLUDE(
         tree = parse('include_directories (${HELLO_SOURCE_DIR}/Hello)')
         expected = File([
             Command('include_directories', [Arg('${HELLO_SOURCE_DIR}/Hello')])
-            ])
+        ])
         self.assertEqual(expected, tree)
 
     def test_command_with_no_args(self):
@@ -98,6 +101,7 @@ some_Command (
 	)
 '''
         output = str(parse(input))
+        assert output == input
 
     def test_comments_preserved(self):
         input = '''\
@@ -166,4 +170,3 @@ hello("hello world")
 
 if __name__ == '__main__':
     unittest.main()
-
