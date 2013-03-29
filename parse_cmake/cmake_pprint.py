@@ -2,7 +2,7 @@ from __future__ import print_function
 import argparse
 import sys
 
-import cmakelists_parsing.parsing as cmp
+import parse_cmake.parsing as cmp
 
 
 def main():

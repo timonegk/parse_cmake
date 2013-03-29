@@ -2,7 +2,7 @@ import glob
 import os
 import unittest
 
-import cmakelists_parsing.parsing as cmp
+import parse_cmake.parsing as cmp
 
 
 def yield_examples():

@@ -1,19 +1,11 @@
 from setuptools import setup, find_packages
 
-# Prevent "TypeError: 'NoneType' object is not callable" error
-# when running python setup.py test 
-# (see http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html)
-try:
-    import multiprocessing
-except ImportError:
-    pass
-
 setup(
-    name='cmakelists_parsing',
-    version='0.3',
-    author='Issac Trotts',
-    author_email='itrotts@willowgarage.com',
-    url='http://github.com/ijt/cmakelists_parsing',
+    name='parse_cmake',
+    version='0.4.0',
+    author='Issac Trotts, William Woodall',
+    author_email='itrotts@willowgarage.com, william@osrfoundation.org',
+    url='http://github.com/wjwwood/parse_cmake',
     description='Parser for CMakeLists.txt files',
     packages=find_packages(),
     zip_safe=False,
@@ -21,9 +13,8 @@ setup(
     tests_require=['nose'],
     test_suite='nose.collector',
     include_package_data=True,
-    entry_points = {
+    entry_points={
         'console_scripts': [
-            'cmake_pprint = cmakelists_parsing.cmake_pprint:main',
+            'cmake_pprint = parse_cmake.cmake_pprint:main',
         ]
     })
-

@@ -2,7 +2,7 @@
 
 import unittest
 
-from cmakelists_parsing.parsing import (
+from parse_cmake.parsing import (
     File, Command, Comment, BlankLine, Arg, parse, prettify)
 
 
