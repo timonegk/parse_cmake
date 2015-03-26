@@ -1,7 +1,7 @@
 from collections import namedtuple
 import re
 
-import list_utils
+from parse_cmake import list_utils
 
 QuotedString = namedtuple('QuotedString', 'contents comments')
 _Arg = namedtuple('Arg', 'contents comments')
@@ -241,7 +241,7 @@ def parse_command(start_line_num, command_name, toks):
 
 
 def expect(expected_type, toks):
-    line_num, (typ, tok_contents) = toks.next()
+    line_num, (typ, tok_contents) = next(toks)
     if typ != expected_type:
         msg = 'Expected a %s, but got "%s" at line %s' % (
             expected_type, tok_contents, line_num)
