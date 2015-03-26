@@ -9,7 +9,7 @@ from parse_cmake.parsing import (
 
 def prettify(src):
     opts = FormattingOptions()
-    opts.indent = '\t'
+    opts.indent = '    '
     return parse_cmake.parsing.prettify(src, opts)
 
 class ParsingTestCase(unittest.TestCase):
@@ -103,7 +103,7 @@ INCLUDE(
     def test_arg_comments_preserved(self):
         input = '''
 some_command(x  # inline comment about x
-	)
+    )
 '''
         self.assertMultiLineEqual(input, prettify(input))
 
@@ -116,8 +116,8 @@ some_command(x  # inline comment about x
 command1(VERSION 2.6) # inline comment for Command1
 
 command2(x  # inline comment about x
-	"y"  # inline comment about a quoted string "y"
-	) # inline comment for Command2
+    "y"  # inline comment about a quoted string "y"
+    ) # inline comment for Command2
 '''
         self.assertMultiLineEqual(input, prettify(input))
 
@@ -138,17 +138,17 @@ set (MY_STRING "%s")
     def test_ifs_indented(self):
         input = '''
 if(a)
-	if(b)
-		set(X 1)
-	endif()
+    if(b)
+        set(X 1)
+    endif()
 elseif(a)
-	if(foo)
-		set(Z 3)
-	endif()
+    if(foo)
+        set(Z 3)
+    endif()
 else(a)
-	if(c)
-		set(Y 2)
-	endif(c)
+    if(c)
+        set(Y 2)
+    endif(c)
 endif(a)
 '''
         self.assertMultiLineEqual(input, prettify(input))
@@ -156,7 +156,7 @@ endif(a)
     def test_macros_indented(self):
         input = '''
 macro(hello MESSAGE)
-	message(${MESSAGE})
+    message(${MESSAGE})
 endmacro(hello) # call the macro with the string "hello world"
 hello("hello world")
 '''
@@ -165,11 +165,19 @@ hello("hello world")
     def test_functions_indented(self):
         input = '''
 function(hello MESSAGE)
-	message(${MESSAGE})
+    message(${MESSAGE})
 endfunction(hello) # call the macro with the string "hello world"
 hello("hello world")
 '''
         self.assertUnchangedByPrettyPrinting(input)
+
+    def test_breaks_commands_at_parameter_names(self):
+        input = '''
+set_source_files_properties(source_file.cpp
+    PROPERTIES
+    COMPILE_FLAGS "-Wsome-error -Wanother-error -fsome-flag")
+'''
+        self.assertMultiLineEqual(input, prettify(input))
 
     def assertUnchangedByPrettyPrinting(self, input):
         self.assertMultiLineEqual(input, prettify(input))

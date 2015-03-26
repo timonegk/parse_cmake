@@ -1,5 +1,6 @@
 from collections import namedtuple
 import re
+import sys
 
 import list_utils
 
@@ -98,8 +99,10 @@ def compose_lines(tree, formatting_opts):
             if name in ('function', 'macro', 'if', 'else', 'elseif'):
                 level += 1
 
+def is_parameter_name_arg(name):
+    return re.match('^[A-Z_]+$', name) and name not in ['ON', 'OFF']
 
-def command_to_lines(cmd, formatting_opts):
+def command_to_lines(cmd, formatting_opts, use_multiple_lines = False):
     class output:
         lines = []
         current_line = cmd.name.lower() + '('
@@ -110,10 +113,25 @@ def command_to_lines(cmd, formatting_opts):
         output.current_line = ''
         output.is_first_in_line = True
 
-    for arg in cmd.body:
+    for arg_index, arg in enumerate(cmd.body):
+        # when formatting a command to multiple lines, try to start
+        # new lines with parameter names
+        #
+        #   command(FOO arg
+        #     OPTION value
+        #     OPTION value)
+        if arg_index > 0 and use_multiple_lines and is_parameter_name_arg(arg.contents):
+            end_current_line()
+
         arg_str = arg_to_str(arg).strip()
         if len(output.current_line) + len(arg_str) > formatting_opts.max_line_width:
-            end_current_line()
+            if not use_multiple_lines:
+                # if the command does not fit on a single line, re-enter the function
+                # in multi-line formatting mode so that we can choose the best
+                # points to break the line
+                return command_to_lines(cmd, formatting_opts, use_multiple_lines = True)
+            else:
+                end_current_line()
 
         if output.is_first_in_line:
             output.is_first_in_line = False
