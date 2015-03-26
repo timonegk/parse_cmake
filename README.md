@@ -26,3 +26,13 @@ There is also a command line utility called cmake_pprint that pretty-prints
 CMake files:
 
     $ cmake_pprint CMakeLists.txt
+
+Development
+-----------
+
+### Running Tests
+
+```
+python -m unittest discover
+```
+
