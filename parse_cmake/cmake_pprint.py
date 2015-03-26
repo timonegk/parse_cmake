@@ -4,6 +4,7 @@ import sys
 
 import parsing as cmp
 
+
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser(description='Pretty-print CMakeLists files.')

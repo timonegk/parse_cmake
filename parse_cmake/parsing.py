@@ -1,6 +1,5 @@
 from collections import namedtuple
 import re
-import sys
 
 import list_utils
 
@@ -9,8 +8,25 @@ _Arg = namedtuple('Arg', 'contents comments')
 _Command = namedtuple('Command', 'name body comment')
 BlankLine = namedtuple('BlankLine', '')
 
-BEGIN_BLOCK_COMMANDS = ['function', 'macro', 'if', 'else', 'elseif', 'foreach', 'while']
-END_BLOCK_COMMANDS = ['endfunction', 'endmacro', 'endif', 'else', 'elseif', 'endforeach', 'endwhile']
+BEGIN_BLOCK_COMMANDS = [
+    'function',
+    'macro',
+    'if',
+    'else',
+    'elseif',
+    'foreach',
+    'while'
+]
+END_BLOCK_COMMANDS = [
+    'endfunction',
+    'endmacro',
+    'endif',
+    'else',
+    'elseif',
+    'endforeach',
+    'endwhile'
+]
+
 
 class FormattingOptions():
     """Specifies the formatting options for pretty-printing CMakeLists.txt output.
@@ -21,10 +37,11 @@ class FormattingOptions():
         self.indent = '  '
         self.max_line_width = 79
 
+
 class File(list):
     """Top node of the syntax tree for a CMakeLists file."""
 
-    def pretty_print(self, formatting_opts = FormattingOptions()):
+    def pretty_print(self, formatting_opts=FormattingOptions()):
         '''
         Returns the pretty-print string for tree
         with indentation given by the string tab.
@@ -55,7 +72,7 @@ class CMakeParseError(Exception):
     pass
 
 
-def prettify(s, formatting_opts = FormattingOptions()):
+def prettify(s, formatting_opts=FormattingOptions()):
     """
     Returns the pretty-print of the contents of a CMakeLists file.
     """
@@ -103,10 +120,12 @@ def compose_lines(tree, formatting_opts):
             if name in BEGIN_BLOCK_COMMANDS:
                 level += 1
 
+
 def is_parameter_name_arg(name):
     return re.match('^[A-Z_]+$', name) and name not in ['ON', 'OFF']
 
-def command_to_lines(cmd, formatting_opts, use_multiple_lines = False):
+
+def command_to_lines(cmd, formatting_opts, use_multiple_lines=False):
     class output:
         lines = []
         current_line = cmd.name.lower() + '('
@@ -133,7 +152,7 @@ def command_to_lines(cmd, formatting_opts, use_multiple_lines = False):
                 # if the command does not fit on a single line, re-enter the function
                 # in multi-line formatting mode so that we can choose the best
                 # points to break the line
-                return command_to_lines(cmd, formatting_opts, use_multiple_lines = True)
+                return command_to_lines(cmd, formatting_opts, use_multiple_lines=True)
             else:
                 end_current_line()
 
@@ -154,6 +173,7 @@ def command_to_lines(cmd, formatting_opts, use_multiple_lines = False):
     end_current_line()
 
     return output.lines
+
 
 def arg_to_str(arg):
     comment_part = '  ' + '\n'.join(arg.comments) + '\n' if arg.comments else ''
