@@ -2,9 +2,15 @@
 
 import unittest
 
-from parse_cmake.parsing import (
-    File, Command, Comment, BlankLine, Arg, parse, prettify)
+import parse_cmake.parsing
 
+from parse_cmake.parsing import (
+    File, Command, Comment, BlankLine, Arg, parse, FormattingOptions)
+
+def prettify(src):
+    opts = FormattingOptions()
+    opts.indent = '    '
+    return parse_cmake.parsing.prettify(src, opts)
 
 class ParsingTestCase(unittest.TestCase):
     def setUp(self):
@@ -96,12 +102,10 @@ INCLUDE(
 
     def test_arg_comments_preserved(self):
         input = '''
-some_Command (
-	x  # inline comment about x
-	)
+some_command(x  # inline comment about x
+    )
 '''
-        output = str(parse(input))
-        assert output == input
+        self.assertMultiLineEqual(input, prettify(input))
 
     def test_comments_preserved(self):
         input = '''\
@@ -109,15 +113,13 @@ some_Command (
 # more about the file
 
 # comment above Command1
-Command1(VERSION 2.6)  # inline comment for Command1
+command1(VERSION 2.6) # inline comment for Command1
 
-Command2(x  # inline comment about x
-	"y"  # inline comment about a quoted string "y"
-	)  # inline comment for Command2
+command2(x  # inline comment about x
+    "y"  # inline comment about a quoted string "y"
+    ) # inline comment for Command2
 '''
-        output = str(parse(input))
-
-        self.assertMultiLineEqual(input, output)
+        self.assertMultiLineEqual(input, prettify(input))
 
     def test_multiline_string(self):
         s = '''
@@ -136,22 +138,26 @@ set (MY_STRING "%s")
     def test_ifs_indented(self):
         input = '''
 if(a)
-	if(b)
-		set(X 1)
-	endif()
+    if(b)
+        set(X 1)
+    endif()
+elseif(a)
+    if(foo)
+        set(Z 3)
+    endif()
 else(a)
-	if(c)
-		set(Y 2)
-	endif(c)
+    if(c)
+        set(Y 2)
+    endif(c)
 endif(a)
 '''
-        self.assertMultiLineEqual(input, str(parse(input)))
+        self.assertMultiLineEqual(input, prettify(input))
 
     def test_macros_indented(self):
         input = '''
 macro(hello MESSAGE)
-	message(${MESSAGE})
-endmacro(hello)  # call the macro with the string "hello world"
+    message(${MESSAGE})
+endmacro(hello) # call the macro with the string "hello world"
 hello("hello world")
 '''
         self.assertUnchangedByPrettyPrinting(input)
@@ -159,11 +165,31 @@ hello("hello world")
     def test_functions_indented(self):
         input = '''
 function(hello MESSAGE)
-	message(${MESSAGE})
-endfunction(hello)  # call the macro with the string "hello world"
+    message(${MESSAGE})
+endfunction(hello) # call the macro with the string "hello world"
 hello("hello world")
 '''
         self.assertUnchangedByPrettyPrinting(input)
+
+    def test_loops_indented(self):
+        input = '''
+foreach(var ${LIST})
+    command(var)
+endforeach()
+
+while(cond)
+    command(var)
+endwhile()
+'''
+        self.assertUnchangedByPrettyPrinting(input)
+
+    def test_breaks_commands_at_parameter_names(self):
+        input = '''
+set_source_files_properties(source_file.cpp
+    PROPERTIES
+    COMPILE_FLAGS "-Wsome-error -Wanother-error -fsome-flag")
+'''
+        self.assertMultiLineEqual(input, prettify(input))
 
     def assertUnchangedByPrettyPrinting(self, input):
         self.assertMultiLineEqual(input, prettify(input))

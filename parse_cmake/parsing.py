@@ -8,16 +8,48 @@ _Arg = namedtuple('Arg', 'contents comments')
 _Command = namedtuple('Command', 'name body comment')
 BlankLine = namedtuple('BlankLine', '')
 
+BEGIN_BLOCK_COMMANDS = [
+    'function',
+    'macro',
+    'if',
+    'else',
+    'elseif',
+    'foreach',
+    'while'
+]
+END_BLOCK_COMMANDS = [
+    'endfunction',
+    'endmacro',
+    'endif',
+    'else',
+    'elseif',
+    'endforeach',
+    'endwhile'
+]
+
+
+class FormattingOptions():
+    """Specifies the formatting options for pretty-printing CMakeLists.txt output.
+       The default configuration aims to match the house style used
+       by the CMake project itself. See https://github.com/Kitware/CMake
+    """
+    def __init__(self):
+        self.indent = '  '
+        self.max_line_width = 79
+
 
 class File(list):
     """Top node of the syntax tree for a CMakeLists file."""
 
-    def __str__(self):
+    def pretty_print(self, formatting_opts=FormattingOptions()):
         '''
         Returns the pretty-print string for tree
         with indentation given by the string tab.
         '''
-        return '\n'.join(compose_lines(self)) + '\n'
+        return '\n'.join(compose_lines(self, formatting_opts)) + '\n'
+
+    def __str__(self):
+        return self.pretty_print()
 
     def __repr__(self):
         return 'File(' + repr(list(self)) + ')'
@@ -40,11 +72,11 @@ class CMakeParseError(Exception):
     pass
 
 
-def prettify(s):
+def prettify(s, formatting_opts=FormattingOptions()):
     """
     Returns the pretty-print of the contents of a CMakeLists file.
     """
-    return str(parse(s))
+    return parse(s).pretty_print(formatting_opts)
 
 
 def parse(s, path='<string>'):
@@ -64,11 +96,11 @@ def strip_blanks(tree):
     return File([x for x in tree if not isinstance(x, BlankLine)])
 
 
-def compose_lines(tree, max_width=79):
+def compose_lines(tree, formatting_opts):
     """
     Yields pretty-printed lines of a CMakeLists file.
     """
-    tab = '\t'
+    tab = formatting_opts.indent
     level = 0
     for item in tree:
         if isinstance(item, (Comment, str)):
@@ -77,29 +109,70 @@ def compose_lines(tree, max_width=79):
             yield ''
         elif isinstance(item, _Command):
             name = item.name.lower()
-            if name in ('endfunction', 'endmacro', 'endif', 'else'):
+            if name in END_BLOCK_COMMANDS:
                 level -= 1
-            for i, line in enumerate(command_to_lines(item)):
+
+            for i, line in enumerate(command_to_lines(item, formatting_opts)):
                 offset = 1 if i > 0 else 0
                 line2 = (level + offset) * tab + line
-                if len(line2) <= max_width:
-                    yield line2
-                else:
-                    command_to_lines
-                    # Line is too long. Try again.
-                    for _, (ty, contents) in tokenize(line):
-                        yield (level + offset) * tab + contents
+                yield line2
 
-            if name in ('function', 'macro', 'if', 'else'):
+            if name in BEGIN_BLOCK_COMMANDS:
                 level += 1
 
 
-# FIXME: Make this split into more lines if the result would be too wide.
-def command_to_lines(cmd, sep=''):
-    final_paren = ')' if cmd.body and cmd.body[-1].comments else ')'
-    comment_part = '  ' + cmd.comment if cmd.comment else ''
-    result = cmd.name + '(' + sep.join(map(arg_to_str, cmd.body)) + final_paren + comment_part
-    return [l.strip() for l in result.splitlines()]
+def is_parameter_name_arg(name):
+    return re.match('^[A-Z_]+$', name) and name not in ['ON', 'OFF']
+
+
+def command_to_lines(cmd, formatting_opts, use_multiple_lines=False):
+    class output:
+        lines = []
+        current_line = cmd.name.lower() + '('
+        is_first_in_line = True
+
+    def end_current_line():
+        output.lines += [output.current_line]
+        output.current_line = ''
+        output.is_first_in_line = True
+
+    for arg_index, arg in enumerate(cmd.body):
+        # when formatting a command to multiple lines, try to start
+        # new lines with parameter names
+        #
+        #   command(FOO arg
+        #     OPTION value
+        #     OPTION value)
+        if arg_index > 0 and use_multiple_lines and is_parameter_name_arg(arg.contents):
+            end_current_line()
+
+        arg_str = arg_to_str(arg).strip()
+        if len(output.current_line) + len(arg_str) > formatting_opts.max_line_width:
+            if not use_multiple_lines:
+                # if the command does not fit on a single line, re-enter the function
+                # in multi-line formatting mode so that we can choose the best
+                # points to break the line
+                return command_to_lines(cmd, formatting_opts, use_multiple_lines=True)
+            else:
+                end_current_line()
+
+        if output.is_first_in_line:
+            output.is_first_in_line = False
+        else:
+            output.current_line += ' '
+
+        output.current_line += arg_str
+        if len(arg.comments) > 0:
+            end_current_line()
+
+    output.current_line += ')'
+
+    if cmd.comment:
+        output.current_line += ' ' + cmd.comment
+
+    end_current_line()
+
+    return output.lines
 
 
 def arg_to_str(arg):
@@ -168,7 +241,7 @@ def parse_command(start_line_num, command_name, toks):
 
 
 def expect(expected_type, toks):
-    line_num, (typ, tok_contents) = toks.next()
+    line_num, (typ, tok_contents) = next(toks)
     if typ != expected_type:
         msg = 'Expected a %s, but got "%s" at line %s' % (
             expected_type, tok_contents, line_num)

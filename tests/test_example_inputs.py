@@ -27,4 +27,4 @@ class ExamplesTestCase(unittest.TestCase):
             expected = cmp.parse(contents, path)
             actual = cmp.parse(str(cmp.parse(contents, path)))
             msg = 'Failed on %s.\nExpected\n%s\n\nGot\n%s' % (path, expected, actual)
-            self.assertEqual(expected, actual, msg)
+            self.assertMultiLineEqual(str(expected), str(actual), msg)
