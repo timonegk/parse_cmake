@@ -171,6 +171,18 @@ hello("hello world")
 '''
         self.assertUnchangedByPrettyPrinting(input)
 
+    def test_loops_indented(self):
+        input = '''
+foreach(var ${LIST})
+    command(var)
+endforeach()
+
+while(cond)
+    command(var)
+endwhile()
+'''
+        self.assertUnchangedByPrettyPrinting(input)
+
     def test_breaks_commands_at_parameter_names(self):
         input = '''
 set_source_files_properties(source_file.cpp

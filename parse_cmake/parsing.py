@@ -9,6 +9,9 @@ _Arg = namedtuple('Arg', 'contents comments')
 _Command = namedtuple('Command', 'name body comment')
 BlankLine = namedtuple('BlankLine', '')
 
+BEGIN_BLOCK_COMMANDS = ['function', 'macro', 'if', 'else', 'elseif', 'foreach', 'while']
+END_BLOCK_COMMANDS = ['endfunction', 'endmacro', 'endif', 'else', 'elseif', 'endforeach', 'endwhile']
+
 class FormattingOptions():
     """Specifies the formatting options for pretty-printing CMakeLists.txt output.
        The default configuration aims to match the house style used
@@ -89,14 +92,15 @@ def compose_lines(tree, formatting_opts):
             yield ''
         elif isinstance(item, _Command):
             name = item.name.lower()
-            if name in ('endfunction', 'endmacro', 'endif', 'else', 'elseif'):
+            if name in END_BLOCK_COMMANDS:
                 level -= 1
+
             for i, line in enumerate(command_to_lines(item, formatting_opts)):
                 offset = 1 if i > 0 else 0
                 line2 = (level + offset) * tab + line
                 yield line2
 
-            if name in ('function', 'macro', 'if', 'else', 'elseif'):
+            if name in BEGIN_BLOCK_COMMANDS:
                 level += 1
 
 def is_parameter_name_arg(name):
