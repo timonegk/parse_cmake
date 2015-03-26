@@ -2,8 +2,7 @@ from __future__ import print_function
 import argparse
 import sys
 
-import parse_cmake.parsing as cmp
-
+import parsing as cmp
 
 def main():
     # Parse arguments
