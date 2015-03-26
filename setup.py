@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='parse_cmake',
-    version='0.4.0',
+    version='0.4.1',
     author='Issac Trotts, William Woodall',
     author_email='itrotts@willowgarage.com, william@osrfoundation.org',
     url='http://github.com/wjwwood/parse_cmake',
