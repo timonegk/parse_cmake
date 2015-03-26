@@ -1,7 +1,8 @@
 parse\_cmake
 ===================
 
-Python module for parsing CMake files.
+Python module for parsing CMake files and command-line tool
+for beautifying / auto-formatting CMakeLists.txt files
 
 Installing
 ----------
@@ -22,8 +23,7 @@ The API can be used as follows:
     >>> cmp.parse(cmakelists_contents)
     File([Command([u'ITK', u'REQUIRED', u'# Hello, CMake!'])])
 
-There is also a command line utility called cmake_pprint that pretty-prints
-CMake files:
+There is also a command line utility called cmake_pprint that auto-formats CMakeLists.txt files
 
     $ cmake_pprint CMakeLists.txt
 
