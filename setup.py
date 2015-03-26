@@ -10,11 +10,12 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=['pyPEG2'],
-    tests_require=['nose'],
+    tests_require=['nose', 'flake8'],
     test_suite='nose.collector',
     include_package_data=True,
     entry_points={
         'console_scripts': [
             'cmake_pprint = parse_cmake.cmake_pprint:main',
         ]
-    })
+    }
+)
