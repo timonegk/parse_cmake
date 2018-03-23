@@ -12,18 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import flake8.engine
+from __future__ import print_function
+
 import os
+import sys
+
+# flake8 doesn't support Python < 2.7 anymore
+if sys.version_info[0] > 2 or sys.version_info[1] >= 7:
+    from flake8.api.legacy import get_style_guide
+else:
+    get_style_guide = None
 
 
 def test_flake8():
-    """Test source code for pyFlakes and PEP8 conformance"""
-    flake8style = flake8.engine.StyleGuide(max_line_length=100)
-    report = flake8style.options.report
-    report.start()
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    flake8style.input_dir(os.path.join(this_dir, '..', 'parse_cmake'))
-    report.stop()
-    assert report.total_errors == 0, \
-        ("Found '{0}' code style errors (and warnings)."
-         .format(report.total_errors))
+    if get_style_guide is None:
+        # skip test on Python 2.6 and older
+        return
+
+    style_guide = get_style_guide(
+        exclude=[],
+        ignore=[
+            'E731',  # ignore assign lambda warning
+            'E226',  # ignore whitespace around arithmetic operators
+            'E305',  # ignore whitespace before/after functions rule
+            'D',  # ignore documentation related warnings
+            'I',  # ignore import order related warnings
+            'N802',  # ignore presence of upper case in function names
+        ],
+        max_line_length=100,
+        max_complexity=10,
+        show_source=True,
+    )
+
+    stdout = sys.stdout
+    sys.stdout = sys.stderr
+    # implicitly calls report_errors()
+    report = style_guide.check_files([
+        os.path.dirname(os.path.dirname(__file__)),
+    ])
+    sys.stdout = stdout
+
+    if report.total_errors:
+        # output summary with per-category counts
+        print()
+        report._application.formatter.show_statistics(report._stats)
+        print(
+            'flake8 reported {report.total_errors} errors'
+            .format_map(locals()), file=sys.stderr)
+
+    assert not report.total_errors, \
+        'flake8 reported {report.total_errors} errors'.format(**locals())

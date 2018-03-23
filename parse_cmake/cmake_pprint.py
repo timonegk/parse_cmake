@@ -18,7 +18,7 @@ from __future__ import print_function
 import argparse
 import sys
 
-import parsing as cmp
+from .parsing import parse
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
     for (name, file) in files:
         with file:
             input = file.read()
-            tree = cmp.parse(input, path=name)
+            tree = parse(input, path=name)
             if args.tree:
                 # Print out AST
                 print(repr(tree))
