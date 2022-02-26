@@ -7,7 +7,7 @@ setup(
     author_email='itrotts@willowgarage.com, william@osrfoundation.org',
     url='http://github.com/wjwwood/parse_cmake',
     description='Parser for CMakeLists.txt files',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     install_requires=['pyPEG2'],
     tests_require=['nose', 'flake8'],
     test_suite='nose.collector',
